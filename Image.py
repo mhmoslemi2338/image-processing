@@ -18,28 +18,38 @@ class my_image:
         gsn = cv2.filter2D(tmp, -1, kernel_horizontaly)
         return gsn
     @staticmethod
-    def increase_brightness(img, value=10):
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        h, s, v = cv2.split(hsv)
-        lim = 255 - value
-        v[v > lim] = 255
-        v[v <= lim] += value
-        final_hsv = cv2.merge((h, s, v))
-        img = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
-        return img
+    def threshhold(img,floor=26,limit=200):
+        tmp=img.copy()
+        for i in range(int(len(tmp))):
+            if max(tmp[i])<26:
+                continue
+            for j in range(int(len(tmp[0]))):
+                if tmp[i][j]>=floor and tmp[i][j]<=limit:
+                    tmp[i][j]=tmp[i][j]+50
+        return tmp
     @staticmethod
-    def edge_detection(img,mod='',blur_sigma=0.7):
+    def edge_detection(img,mod='',blur_sigma=0.7,floor=20):
         if mod=='sobel':
-            #img_ = cv2.medianBlur(img.copy(), ksize=1)
-            img_ =my_image.gauss_filter(img,7,blur_sigma)
-            Gx=cv2.Sobel(img_.copy(),6,1,0)
-            Gy=cv2.Sobel(img_.copy(),6,0,1)
+            img_=color.rgb2gray(img.copy())
+            img_ = cv2.medianBlur(img_, ksize=1)
+            img_ =my_image.gauss_filter(img_,7,blur_sigma)
+            Gx=cv2.Sobel(img_.copy(),6,1,0,ksize=7)
+            Gy=cv2.Sobel(img_.copy(),6,0,1,ksize=7)
             absx= cv2.convertScaleAbs(Gx)
             absy = cv2.convertScaleAbs(Gy)
             edge = cv2.addWeighted(absx, 0.5, absy, 0.5,0)
-            edge=my_image.increase_brightness(edge)
-            edge_=color.rgb2gray(edge)
-            return img_,edge_
+            # edge_=color.rgb2gray(edge)
+            #ret2,edge = cv2.threshold(edge,70,150,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+            edge=my_image.threshhold(edge)
+            #ret1,edge2 = cv2.threshold(edge,20,255,cv2.THRESH_BINARY)
+            return img_,edge
+        if mod=='laplace':
+            img_ = cv2.GaussianBlur(img.copy(), (3, 3), blur_sigma)
+            img_gray = cv2.cvtColor(img_, cv2.COLOR_BGR2GRAY)
+            dst = cv2.Laplacian(img_gray, ddepth=30, ksize=3)
+            abs_dst = cv2.convertScaleAbs(dst)
+            edge=my_image.threshhold(abs_dst,floor)
+            return img_,edge
     @staticmethod
     def make_gauss_noise(img,var=300,mean=0):
         row,col,ch= img.shape
@@ -52,8 +62,7 @@ class my_image:
         noisy[:][:][2] = np.clip(noisy[:][:][2], 0, 255)
         noisy=noisy.astype('uint8')
         return noisy
-    
-   
+
 class Show:    
     @staticmethod
     def show_me(img,title='',mode=0,scale=1):
