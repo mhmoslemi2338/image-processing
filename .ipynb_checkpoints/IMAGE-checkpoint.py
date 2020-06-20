@@ -44,11 +44,14 @@ class my_image:
             #ret1,edge2 = cv2.threshold(edge,20,255,cv2.THRESH_BINARY)
             return img_,edge
         if mod=='laplace':
-            img_ = cv2.GaussianBlur(img.copy(), (3, 3), blur_sigma)
+            img_ = cv2.medianBlur(img.copy(), ksize=5)
+            img_ =my_image.gauss_filter(img_,7,blur_sigma)
+            #img_ = cv2.GaussianBlur(img.copy(), (3, 3), blur_sigma)
             img_gray = cv2.cvtColor(img_, cv2.COLOR_BGR2GRAY)
-            dst = cv2.Laplacian(img_gray, ddepth=30, ksize=3)
-            abs_dst = cv2.convertScaleAbs(dst)
-            edge=my_image.threshhold(abs_dst,floor)
+            dst = cv2.Laplacian(img_gray, ddepth=6, ksize=5)
+            edge = cv2.convertScaleAbs(dst)
+            edge = cv2.medianBlur(edge, ksize=3)
+           # edge=my_image.threshhold(abs_dst,floor)
             return img_,edge
     @staticmethod
     def make_gauss_noise(img,var=300,mean=0):
