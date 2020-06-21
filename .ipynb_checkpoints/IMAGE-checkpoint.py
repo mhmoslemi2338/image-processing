@@ -28,7 +28,7 @@ class my_image:
                     tmp[i][j]=tmp[i][j]+50
         return tmp
     @staticmethod
-    def edge_detection(img,mod='',blur_sigma=0.7,floor=20):
+    def edge_detection(img,mod='',blur_sigma=0.7,floor=20,thresh_=1):
         if mod=='sobel':
             img_=color.rgb2gray(img.copy())
             img_ = cv2.medianBlur(img_, ksize=1)
@@ -40,7 +40,8 @@ class my_image:
             edge = cv2.addWeighted(absx, 0.5, absy, 0.5,0)
             # edge_=color.rgb2gray(edge)
             #ret2,edge = cv2.threshold(edge,70,150,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-            edge=my_image.threshhold(edge)
+            if thresh_==1:
+                edge=my_image.threshhold(edge)
             #ret1,edge2 = cv2.threshold(edge,20,255,cv2.THRESH_BINARY)
             return img_,edge
         if mod=='laplace':
@@ -65,6 +66,16 @@ class my_image:
         noisy[:][:][2] = np.clip(noisy[:][:][2], 0, 255)
         noisy=noisy.astype('uint8')
         return noisy
+    @staticmethod
+    def line_detection(img):
+        trash,edge=my_image.edge_detection(img,'sobel',blur_sigma=0.7,floor=20,thresh_=0)
+        trash,th1 = cv2.threshold(edge,19,150,cv2.THRESH_BINARY)
+        lines=cv2.HoughLinesP(th1,1,np.pi/(1800),80,30,10)
+        line_detect=cv2.cvtColor(th1,cv2.COLOR_GRAY2BGR )
+        for i in range(int(len(lines))):
+            for x1,y1,x2,y2 in lines[i]: 
+                cv2.line(line_detect,(x1,y1), (x2,y2), (255,0,0),2)
+        return img,edge,line_detect
 
 class Show:    
     @staticmethod
@@ -84,9 +95,18 @@ class Show:
         plt.title(title)
         #plt.show()
     @staticmethod
-    def compareim(img1,img2,title1='',title2='',size=1):
-        plt.figure(figsize=(int(10*size), int(20*size)))
-        plt.subplot(1,2,1)
-        Show.show_me(img1,title1,1)
-        plt.subplot(1,2,2)
-        Show.show_me(img2,title2,1)
+    def compareim(img1,img2,title1='',title2='',size=1,triple=0,img3=[],title3=''):
+        if triple!=0:
+            plt.figure(figsize=(int(10*size), int(20*size)))
+            plt.subplot(1,3,1)
+            Show.show_me(img1,title1,1)
+            plt.subplot(1,3,2)
+            Show.show_me(img2,title2,1)
+            plt.subplot(1,3,3)
+            Show.show_me(img3,title3,1)
+        else:
+            plt.figure(figsize=(int(10*size), int(20*size)))
+            plt.subplot(1,2,1)
+            Show.show_me(img1,title1,1)
+            plt.subplot(1,2,2)
+            Show.show_me(img2,title2,1)
