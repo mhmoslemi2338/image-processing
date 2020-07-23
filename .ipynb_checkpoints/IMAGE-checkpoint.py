@@ -76,7 +76,30 @@ class my_image:
             for x1,y1,x2,y2 in lines[i]: 
                 cv2.line(line_detect,(x1,y1), (x2,y2), (255,0,0),2)
         return img,edge,line_detect
-
+    @staticmethod
+    def circle_detection(origin):
+        gray=cv2.cvtColor(origin.copy(),cv2.COLOR_BGR2GRAY)
+        gray = cv2.medianBlur(gray,3)
+        gray=cv2.GaussianBlur(gray,(9, 9), 0.4);
+        edge=cv2.Canny(gray,50,255)
+        trash,th1 = cv2.threshold(edge,10,200,cv2.THRESH_BINARY)
+        tmp=20
+        while(True):
+            circles = cv2.HoughCircles(th1,cv2.HOUGH_GRADIENT,1,20,
+                                       param1=20,param2=tmp,minRadius=0,maxRadius=0)
+            if circles.shape[1]>20:
+                tmp+=10
+            else:
+                break  
+        circles = np.uint16(np.around(circles))
+        cimg = cv2.cvtColor(gray,cv2.COLOR_GRAY2BGR)
+        for i in circles[0,:]:
+            cv2.circle(cimg,(i[0],i[1]),i[2],(0,255,0),2)
+            cv2.circle(cimg,(i[0],i[1]),2,(255,0,0),2)
+        return cimg
+    
+    
+    
 class Show:    
     @staticmethod
     def show_me(img,title='',mode=0,scale=1):

@@ -76,16 +76,57 @@ class my_image:
             for x1,y1,x2,y2 in lines[i]: 
                 cv2.line(line_detect,(x1,y1), (x2,y2), (255,0,0),2)
         return img,edge,line_detect
+    @staticmethod
+    def circle_detection(origin,k1=3,k2=5,k3=11):
+        img=origin.copy()
+        gray=cv2.cvtColor(img.copy(),cv2.COLOR_BGR2GRAY)
+        gray = cv2.medianBlur(gray,k1)
+        edge=cv2.Canny(gray,30,255)
+        edge=cv2.GaussianBlur(edge,(k2, k2), 0.4);
+        edge1 = cv2.blur(edge, (k3, k3))
 
+        gray_blurred=4*edge1
+        detected_circles = cv2.HoughCircles(gray_blurred,  cv2.HOUGH_GRADIENT, 1, 20,
+                                             param1 = 20, param2 = 100, minRadius = 0, maxRadius = 0) 
+        for pt in detected_circles[0, :]: 
+            a, b, r = pt[0], pt[1], pt[2] 
+            cv2.circle(img, (a, b), r, (0, 255, 0), 3) 
+            cv2.circle(img, (a, b), 1, (0, 0, 255), 3) 
+        return img
+
+'''
+        gray=cv2.cvtColor(origin.copy(),cv2.COLOR_BGR2GRAY)
+        gray = cv2.medianBlur(gray,3)
+        edge=cv2.Canny(gray,50,255)
+        edge=cv2.GaussianBlur(edge,(11, 11), 0.4);
+        
+        #trash,th1 = cv2.threshold(edge,10,200,cv2.THRESH_BINARY)
+        tmp=20
+        while(True):
+            circles = cv2.HoughCircles(edge,cv2.HOUGH_GRADIENT,1,20,
+                                       param1=20,param2=tmp,minRadius=0,maxRadius=0)
+            if circles.shape[1]>20:
+                tmp+=10
+            else:
+                break  
+        circles = np.uint16(np.around(circles))
+        cimg = cv2.cvtColor(gray,cv2.COLOR_GRAY2BGR)
+        for i in circles[0,:]:
+            cv2.circle(cimg,(i[0],i[1]),i[2],(0,255,0),2)
+            cv2.circle(cimg,(i[0],i[1]),2,(255,0,0),2)
+        return cimg
+'''
+    
+    
 class Show:    
     @staticmethod
-    def show_me(img,title='',mode=0,scale=1):
+    def show_me(img,title='',mode='',scale=1):
         if scale!=1:
             height=int(img.shape[0]*(scale))
             width=int(img.shape[1]*(scale))
             dimention=(width,height)
             img = cv2.resize(img, dimention, interpolation=cv2.INTER_AREA)
-        if mode==0:
+        if mode=='':
             plt.figure(figsize=(int(7*scale), int(14*scale)))
         if len(img.shape)==2:
             plt.imshow(img,'gray')    
@@ -99,11 +140,11 @@ class Show:
         if triple!=0:
             plt.figure(figsize=(int(10*size), int(20*size)))
             plt.subplot(1,3,1)
-            Show.show_me(img1,title1,1)
+            Show.show_me(img1,title1,mode='compare')
             plt.subplot(1,3,2)
-            Show.show_me(img2,title2,1)
+            Show.show_me(img2,title2,mode='compare')
             plt.subplot(1,3,3)
-            Show.show_me(img3,title3,1)
+            Show.show_me(img3,title3,mode='compare')
         else:
             plt.figure(figsize=(int(10*size), int(20*size)))
             plt.subplot(1,2,1)
