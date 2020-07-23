@@ -4,6 +4,35 @@ import numpy as np
 from skimage import data
 from skimage import color
 
+class segmentation:
+    @staticmethod    
+    def ColorSegmentator(image, min_color, max_color):
+        hsv_image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+        color_low=(min_color,40,40)
+        color_high=(max_color,255,253) 
+        mask = cv2.inRange(hsv_image, color_low, color_high)
+        result = cv2.bitwise_and(image, image, mask=mask)
+        return result           
+    @staticmethod
+    def LinesDetector(img,minlenght=0,r=255,g=0,b=0):
+        tmp=img.copy()
+        img_=color.rgb2gray(img.copy())
+        Gx=cv2.Sobel(img_.copy(),6,1,0,ksize=7)
+        Gy=cv2.Sobel(img_.copy(),6,0,1,ksize=7)
+        absx= cv2.convertScaleAbs(Gx)
+        absy = cv2.convertScaleAbs(Gy)
+        edge = cv2.addWeighted(absx, 0.5, absy, 0.5,0)
+        th1 = cv2.threshold(edge,19,150,cv2.THRESH_BINARY)
+        lines=cv2.HoughLinesP(th1[1],1,np.pi/(250),80,30,10)
+        for i in range(int(len(lines))):
+            [x1,y1,x2,y2]=lines[i][0]
+            w=((x1-x2)**2+(y1-y2)**2)
+            if w >= minlenght**2:
+                cv2.line(tmp,(x1,y1), (x2,y2),(r,g,b) ,2)
+        return tmp
+
+
+
 class my_image:  
     @staticmethod
     def readimage(path):
@@ -70,7 +99,7 @@ class my_image:
     def line_detection(img):
         trash,edge=my_image.edge_detection(img,'sobel',blur_sigma=0.7,floor=20,thresh_=0)
         trash,th1 = cv2.threshold(edge,19,150,cv2.THRESH_BINARY)
-        lines=cv2.HoughLinesP(th1,1,np.pi/(1800),80,30,10)
+        lines=cv2.HoughLinesP(th1,1,np.pi/(720),80,30,10)
         line_detect=cv2.cvtColor(th1,cv2.COLOR_GRAY2BGR )
         for i in range(int(len(lines))):
             for x1,y1,x2,y2 in lines[i]: 
