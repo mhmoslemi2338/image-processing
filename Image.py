@@ -13,6 +13,7 @@ class segmentation:
         mask = cv2.inRange(hsv_image, color_low, color_high)
         result = cv2.bitwise_and(image, image, mask=mask)
         return result           
+   
     @staticmethod
     def LinesDetector(img,minlenght=0,r=255,g=0,b=0):
         tmp=img.copy()
@@ -30,6 +31,60 @@ class segmentation:
             if w >= minlenght**2:
                 cv2.line(tmp,(x1,y1), (x2,y2),(r,g,b) ,2)
         return tmp
+    @staticmethod
+    def PolygonDetector(Img,maxside=12,r=255,g=0,b=0):
+        img2=Img.copy()
+        img = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+        img=cv2.blur(img,(3,3))
+        img2=cv2.blur(img2,(3,3))
+        _,threshold = cv2.threshold(img, 100, 255, cv2.THRESH_BINARY) 
+        contours,_=cv2.findContours(threshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) 
+        for cnt in contours : 
+            area = cv2.contourArea(cnt) 
+            if area > 200: 
+                approx = cv2.approxPolyDP(cnt, 0.009 * cv2.arcLength(cnt, True), True) 
+                if(len(approx) >2 and len(approx) <maxside+1 ): 
+                    cv2.drawContours(img2, [approx], 0, (b, g, r), 5) 
+        return img2
+    
+    @staticmethod
+    def camera_color():
+        cap = cv2.VideoCapture(0)
+        while(True):
+            _, frame = cap.read()
+            frame1 = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            result_orange=segmentation.ColorSegmentator(frame1,0,15)
+            result_red=segmentation.ColorSegmentator(frame1,119,179)
+            result_blue=segmentation.ColorSegmentator(frame1,85,120)
+            result_yellow=segmentation.ColorSegmentator(frame1,22,35)
+            result_green=segmentation.ColorSegmentator(frame1,36,80)
+
+            result_red=cv2.cvtColor(result_red, cv2.COLOR_RGB2BGR)
+            result_orange=cv2.cvtColor(result_orange, cv2.COLOR_RGB2BGR)
+            result_blue=cv2.cvtColor(result_blue, cv2.COLOR_RGB2BGR)
+            result_yellow=cv2.cvtColor(result_yellow, cv2.COLOR_RGB2BGR)
+            result_green=cv2.cvtColor(result_green, cv2.COLOR_RGB2BGR)
+
+
+            frame = cv2.resize(frame, (365, 365)) 
+            result_red = cv2.resize(result_red, (365, 365)) 
+            result_orange = cv2.resize(result_orange, (365, 365)) 
+            result_blue = cv2.resize(result_blue, (365, 365)) 
+            result_yellow = cv2.resize(result_yellow, (365, 365)) 
+            result_green = cv2.resize(result_green, (365, 365)) 
+
+            cv2.imshow('frame',frame)
+            cv2.imshow('red & pink',result_red)
+            cv2.imshow('orange',result_orange)
+            cv2.imshow('blue',result_blue)
+            cv2.imshow('yellow',result_yellow)
+            cv2.imshow('green',result_green)
+            k = cv2.waitKey(5) & 0xFF # Escape key
+            if k == 27:
+                break
+        cap = cv2.VideoCapture(1)
+        cv2.destroyAllWindows()
 
 
 
