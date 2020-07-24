@@ -32,7 +32,7 @@ class segmentation:
                 cv2.line(tmp,(x1,y1), (x2,y2),(r,g,b) ,2)
         return tmp
     @staticmethod
-    def PolygonDetector(Img,maxside=12,r=255,g=0,b=0):
+    def PolygonDetector(Img,maxside=12,r=255,g=0,b=0,size=5):
         img2=Img.copy()
         img = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
         img=cv2.blur(img,(3,3))
@@ -44,7 +44,7 @@ class segmentation:
             if area > 200: 
                 approx = cv2.approxPolyDP(cnt, 0.009 * cv2.arcLength(cnt, True), True) 
                 if(len(approx) >2 and len(approx) <maxside+1 ): 
-                    cv2.drawContours(img2, [approx], 0, (b, g, r), 5) 
+                    cv2.drawContours(img2, [approx], 0, (b, g, r), size) 
         return img2
     
     @staticmethod
@@ -85,6 +85,40 @@ class segmentation:
                 break
         cap = cv2.VideoCapture(1)
         cv2.destroyAllWindows()
+
+    @staticmethod
+    def camera_Polygon(maxside=20):
+        cap = cv2.VideoCapture(0)
+        while(True):
+            _, frame = cap.read()
+            #frame1 = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            s=segmentation.PolygonDetector(frame,maxside,r=255,g=0,b=0,size=2)
+            #frame = cv2.resize(frame, (365, 365))
+            #s = cv2.resize(s, (700, 700))
+            cv2.imshow('frame',frame)
+            cv2.imshow('Polygon Detection with maxSide %d' %maxside,s)
+            k = cv2.waitKey(5) & 0xFF # Escape key
+            if k == 27:
+                break
+        cap = cv2.VideoCapture(1)
+        cv2.destroyAllWindows()
+
+    @staticmethod
+    def camera_Line(minlenght=20):
+        cap = cv2.VideoCapture(0)
+        while(True):
+            _, frame = cap.read()
+            frame1 = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            s=segmentation.LinesDetector(frame,minlenght)
+
+            cv2.imshow('frame',frame)
+            cv2.imshow('line detection with minLenrh %d' %minlenght,s)
+            k = cv2.waitKey(5) & 0xFF # Escape key
+            if k == 27:
+                break
+        cap = cv2.VideoCapture(1)
+        cv2.destroyAllWindows()
+
 
 
 
