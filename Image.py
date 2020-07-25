@@ -204,10 +204,16 @@ class my_image:
         edge1 = cv2.blur(edge, (k3, k3))
 
         gray_blurred=4*edge1
-        detected_circles = cv2.HoughCircles(gray_blurred,  cv2.HOUGH_GRADIENT, 1, 20,
+        tmp=20
+        while(True):
+            detected_circles = cv2.HoughCircles(gray_blurred,  cv2.HOUGH_GRADIENT, 1, tmp,
                                              param1 = 20, param2 = 100, minRadius = 0, maxRadius = 0) 
+            if len(detected_circles[0, :])>8:
+                tmp+=20
+            else:
+                break
         for pt in detected_circles[0, :]: 
-            a, b, r = pt[0], pt[1], pt[2] 
+            a, b, r = pt[0], pt[1], int(pt[2] )
             cv2.circle(img, (a, b), r, (0, 255, 0), 3) 
             cv2.circle(img, (a, b), 1, (0, 0, 255), 3) 
         return img
@@ -269,3 +275,34 @@ class Show:
             Show.show_me(img1,title1,1)
             plt.subplot(1,2,2)
             Show.show_me(img2,title2,1)
+    
+    @staticmethod
+    def show_segments(warped,size,Qr):
+        for i in range(0,len(warped),6):
+            tmp=[]
+            size_=[]
+            if Qr==0:
+                Qr=[0 for i in range(len(warped))]
+            qr=[]
+            for j in range(6):
+                try:
+                    tmp.append(warped[i+j])
+                    size_.append(size[i+j])
+                    if Qr[i+j]==[]:
+                        qr.append(False)
+                    elif Qr[i+j]==0:
+                        qr.append('')
+                    else:
+                        qr.append(True)
+                except:
+                    break
+            l=len(tmp)
+            for j in range(l):
+                pl=100+10*l+j+1
+                plt.subplot(pl)
+                plt.imshow(cv2.cvtColor(tmp[j],cv2.COLOR_BGR2RGB));plt.axis(False);
+                if qr[j]!='':
+                    plt.title(size_[j]+'\n'+'Qr:'+str(qr[j]));
+                else:
+                    plt.title(size_[j]);
+            plt.show()
