@@ -32,7 +32,7 @@ class segmentation:
                 cv2.line(tmp,(x1,y1), (x2,y2),(r,g,b) ,2)
         return tmp
     @staticmethod
-    def PolygonDetector(Img,maxside=12,r=255,g=0,b=0,size=5):
+    def PolygonDetector(Img,maxside=12,r=255,g=0,b=0,thickness=5):
         img2=Img.copy()
         img = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
         img=cv2.blur(img,(3,3))
@@ -44,7 +44,7 @@ class segmentation:
             if area > 200: 
                 approx = cv2.approxPolyDP(cnt, 0.009 * cv2.arcLength(cnt, True), True) 
                 if(len(approx) >2 and len(approx) <maxside+1 ): 
-                    cv2.drawContours(img2, [approx], 0, (b, g, r), size) 
+                    cv2.drawContours(img2, [approx], 0, (b, g, r), thickness) 
         return img2
     
     @staticmethod
@@ -195,7 +195,18 @@ class my_image:
                 cv2.line(line_detect,(x1,y1), (x2,y2), (255,0,0),2)
         return img,edge,line_detect
     @staticmethod
-    def circle_detection(origin,k1=3,k2=5,k3=11):
+    def line_detection2(img,r=255,g=0,b=0,thickness=2):
+        tmp=img.copy()
+        _,edge=my_image.edge_detection(tmp.copy(),'sobel',blur_sigma=0.7,floor=20,thresh_=0)
+        _,th1 = cv2.threshold(edge,19,150,cv2.THRESH_BINARY)
+        lines=cv2.HoughLinesP(th1,1,np.pi/(1000),80,30,10)
+        for i in range(int(len(lines))):
+            for x1,y1,x2,y2 in lines[i]: 
+                cv2.line(tmp,(x1,y1), (x2,y2), (r,g,b),thickness)
+        return tmp
+    
+    @staticmethod
+    def circle_detection(origin,k1=3,k2=5,k3=11,thickness=3):
         img=origin.copy()
         gray=cv2.cvtColor(img.copy(),cv2.COLOR_BGR2GRAY)
         gray = cv2.medianBlur(gray,k1)
@@ -214,8 +225,8 @@ class my_image:
                 break
         for pt in detected_circles[0, :]: 
             a, b, r = pt[0], pt[1], int(pt[2] )
-            cv2.circle(img, (a, b), r, (0, 255, 0), 3) 
-            cv2.circle(img, (a, b), 1, (0, 0, 255), 3) 
+            cv2.circle(img, (a, b), r, (0, 255, 0), thickness) 
+            cv2.circle(img, (a, b), 1, (0, 0, 255), thickness) 
         return img
 
 '''
